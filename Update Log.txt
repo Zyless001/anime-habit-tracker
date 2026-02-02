@@ -1,31 +1,81 @@
-Update 2.0 (Dandadan)
+Update 2.5 (Achievement's + Profile)
 
-+6 New Characters
++4 New Characters
 
 CHARACTER INFO
 
-"Dandadan" (2 Commons, 1 Uncommon, 2 Rares, and 1 Legendary
+"Dandadan" - (1 Common)
+
+"Naruto" - (1 Uncommon, and 1 Rare)
+
+"One Punch Man" - (1 Common)
 
 
 QOL
 
-Price Change - Naruto Wheel 20 = 10
+Added - Profile Menu
 
-Price Change - One Piece Wheel 35 = 20
+Added - Achievement Menu
 
-Price Change - One Punch Man Wheel 50 = 30
+Added - Profile Pictures
 
-Price Change - Watch 1 Anime Episode 25 = 20
+Added - "HWP" Tracker
+
+Added - Customization
+
+Price Change - Naruto Wheel 10 = 5
+
+Price Change - One Piece Wheel 20 = 5
+
+Price Change - One Punch Man Wheel 30 = 10
+
+Price Change - Dandadan Wheel 40 = 10
+
+XP Change - Common's 25 = 15
+
+XP Change - Uncommon's 50 = 25
+
+XP Change - Rare's  100 = 50
+
+XP Change - Legendarys's  150 = 100
+
+
+ACHIEVEMENTS
+
+"Okarun - Level 5"
+
+"Naruto - Level 5"
+
+"Luffy - Level 5"
+
+"Smileman - Level 5"
+
+"Unlock All Of Team 7"
+
+
+PFP's
+
+"Ken Takekura" - Okarun
+
+"Kid Naruto" - Naruto
+
+"PTS Luffy" - Luffy
+
+"Smileman" - Smile Man
+
+"Team 7" - None
 
 
 BUG FIX
 
-Fixed - Wheel showing the rarity instead of saying "Nothing"
+No bugs yet...
 
 
 EXTRA INFO
 
-A very small update I know. Next update a good amount of stuff is coming that will make everything
-feel more rewarding with the characters. Until then we got Dandadan boys.
+HUGE UPDATE... It may not look like much on the surface but doing task's will feel a lot more
+rewarding now. We get PFP's, Achievements, etc. Which makes going for characters 
+(atleast for me) worth it. I hope yall like this update if you try it. Also, let me know if you find any bugs
+or what anime to add in the future
 
 Work hard and God bless
