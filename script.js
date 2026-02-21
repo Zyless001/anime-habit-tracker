@@ -2,7 +2,7 @@
 let selectedSeries = null;
 let currentWheelSeries = null;
 
-const wheelPrices = { "Naruto":5, "One Piece":5, "One Punch Man":10, "Dandadan":10, "Jujutsu Kaisen":10 };
+const wheelPrices = { "Naruto":5, "One Piece":5, "One Punch Man":5, "Dandadan":10, "Jujutsu Kaisen":10, "Frieren":10 };
 const rarityXP = { Common:15, Uncommon:25, Rare:50, Legendary:100 };
 
 const defaultData = {
@@ -56,13 +56,36 @@ const defaultData = {
     nanami:{name:"Nanami",series:"Jujutsu Kaisen",rarity:"Rare",unlocked:false,level:1,xp:0},
     sukuna:{name:"Sukuna",series:"Jujutsu Kaisen",rarity:"Legendary",unlocked:false,level:1,xp:0},
     gojo:{name:"Gojo",series:"Jujutsu Kaisen",rarity:"Legendary",unlocked:false,level:1,xp:0},
+    /*Frieren*/
+    draht:{name:"Draht",series:"Frieren",rarity:"Common",unlocked:false,level:1,xp:0},
+    linie:{name:"Linie",series:"Frieren",rarity:"Common",unlocked:false,level:1,xp:0},
+    kraft:{name:"Kraft",series:"Frieren",rarity:"Common",unlocked:false,level:1,xp:0},
+    kanne:{name:"Kanne",series:"Frieren",rarity:"Common",unlocked:false,level:1,xp:0},
+    laufen:{name:"Laufen",series:"Frieren",rarity:"Common",unlocked:false,level:1,xp:0},
+    sein:{name:"Sein",series:"Frieren",rarity:"Common",unlocked:false,level:1,xp:0},
+    wirbel:{name:"Wirbel",series:"Frieren",rarity:"Common",unlocked:false,level:1,xp:0},
+    lugner:{name:"Lugner",series:"Frieren",rarity:"Common",unlocked:false,level:1,xp:0},
+    flamme:{name:"Flamme",series:"Frieren",rarity:"Uncommon",unlocked:false,level:1,xp:0},
+    denken:{name:"Denken",series:"Frieren",rarity:"Uncommon",unlocked:false,level:1,xp:0},
+    sense:{name:"Sense",series:"Frieren",rarity:"Uncommon",unlocked:false,level:1,xp:0},
+    heiter:{name:"Heiter",series:"Frieren",rarity:"Uncommon",unlocked:false,level:1,xp:0},
+    eisen:{name:"Eisen",series:"Frieren",rarity:"Uncommon",unlocked:false,level:1,xp:0},
+    stark:{name:"Stark",series:"Frieren",rarity:"Uncommon",unlocked:false,level:1,xp:0},
+    ubel:{name:"Ubel",series:"Frieren",rarity:"Rare",unlocked:false,level:1,xp:0},
+    land:{name:"Land",series:"Frieren",rarity:"Rare",unlocked:false,level:1,xp:0},
+    serie:{name:"Serie",series:"Frieren",rarity:"Rare",unlocked:false,level:1,xp:0},
+    aura:{name:"Aura",series:"Frieren",rarity:"Rare",unlocked:false,level:1,xp:0},
+    himmel:{name:"Himmel",series:"Frieren",rarity:"Rare",unlocked:false,level:1,xp:0},
+    fern:{name:"Fern",series:"Frieren",rarity:"Rare",unlocked:false,level:1,xp:0},
+    frierencc:{name:"Frieren",series:"Frieren",rarity:"Legendary",unlocked:false,level:1,xp:0},
   },
-  achievementsClaimed: {} 
+  achievementsClaimed: {},
+  pfps: {},
+  pfpNames: {},
+  selectedPFP: null
 };
 
 let data = JSON.parse(JSON.stringify(defaultData));
-data.selectedPFP = data.selectedPFP || null; 
-data.pfpNames = data.pfpNames || {};
 
 /* ---------------- SAVE EXPORT / IMPORT ---------------- */
 function exportSave(){
@@ -76,37 +99,47 @@ function exportSave(){
 }
 
 function importSave(e){
-  const file = e.target.files[0]; if(!file) return;
+  const file = e.target.files[0];
+  if(!file) return;
+
   const reader = new FileReader();
+
   reader.onload = () => {
     try {
       const imported = JSON.parse(reader.result);
 
-      // Merge characters
-      Object.entries(imported.characters||{}).forEach(([k,c])=>{data.characters[k]=c;});
+      /* ---- BASIC DATA ---- */
       if(imported.tasks) data.tasks = imported.tasks;
-      if(imported.hwp) data.hwp = imported.hwp;
+      if(imported.hwp !== undefined) data.hwp = imported.hwp;
       if(imported.selectedCharacter) data.selectedCharacter = imported.selectedCharacter;
       if(imported.selectedPFP) data.selectedPFP = imported.selectedPFP;
       if(imported.pfpNames) data.pfpNames = imported.pfpNames;
       if(imported.achievementsClaimed) data.achievementsClaimed = imported.achievementsClaimed;
 
-      // Fix PFPs: ensure every series array exists
-      data.pfps = data.pfps || {};
-      if(imported.pfps){
-        Object.entries(imported.pfps).forEach(([series,pfps])=>{
-          data.pfps[series] = data.pfps[series] || [];
-          pfps.forEach(p=>{
-            // only add if it doesn't exist already
-            if(!data.pfps[series].some(x=>x.image===p.image)) data.pfps[series].push(p);
-          });
-        });
-      }
+      /* ---- CHARACTERS ---- */
+      Object.entries(imported.characters || {}).forEach(([k,c])=>{
+        data.characters[k] = c;});
 
-      selectedPFPSeries = null; // reset selected series so menu can pick the first one
+      data.pfps = {};
+      if(imported.pfps){
+        if(Array.isArray(imported.pfps)){
+          data.pfps["Imported"] = imported.pfps;
+        }
+        else{
+          Object.entries(imported.pfps).forEach(([series,pfps])=>{
+            data.pfps[series] = pfps;
+          });
+        }
+      }
+      selectedPFPSeries = null;
       render();
+      updateProfilePFP();
+      renderPFPMenus();
       alert('Save imported successfully!');
-    } catch { alert('Invalid save file'); }
+    } catch(err){
+      console.error(err);
+      alert('Invalid save file');
+    }
   };
   reader.readAsText(file);
 }
@@ -314,46 +347,66 @@ function isLevelAtLeast(level, ...keys) {
 /* ---------------- ACHIEVEMENTS ---------------- */
 const achievementsData = {
   /*Naruto*/
-  "Naruto": [{id: "naruto_level5", task: "Naruto - Level 5", displayName: "Kid Naruto", hwp: 5, image: "images/kidnaruto.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "naruto")},
-  {id: "sakura_level5", task: "Sakura - Level 5", displayName: "Kid Sakura", hwp: 5, image: "images/kidsakura.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "sakura")},
-  {id: "sasuke_level5", task: "Sasuke - Level 5", displayName: "Kid Sasuke", hwp: 5, image: "images/kidsasuke.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "sasuke")},
-  {id: "team7_unlocked", task: "Unlock All Of Team 7", displayName: "Team 7", hwp: 10, image: "images/team7.png", unlocked: false, claimed: false, condition: () => isUnlocked("naruto", "sakura", "sasuke")},
-  {id: "kakashi_level5", task: "Kakashi - Level 5", displayName: "Kakashi", hwp: 5, image: "images/kakashi.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "kakashi")},
-  {id: "madara_unlocked", task: "Unlock Madara", displayName: "Madara", hwp: 10, image: "images/madara.png", unlocked: false, claimed: false, condition: () => isUnlocked("madara")}],
+  "Naruto": [
+  {id: "naruto_level5", task: "Naruto - Level 5", displayName: "Kid Naruto", hwp: 5, image: "newimages/naruto/kidnaruto.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "naruto")},
+  {id: "sakura_level5", task: "Sakura - Level 5", displayName: "Kid Sakura", hwp: 5, image: "newimages/naruto/kidsakura.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "sakura")},
+  {id: "sasuke_level5", task: "Sasuke - Level 5", displayName: "Kid Sasuke", hwp: 5, image: "newimages/naruto/kidsasuke.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "sasuke")},
+  {id: "team7_unlocked", task: "Unlock All Of Team 7", displayName: "Team 7", hwp: 10, image: "newimages/naruto/team7.png", unlocked: false, claimed: false, condition: () => isUnlocked("naruto", "sakura", "sasuke")},
+  {id: "kakashi_level5", task: "Kakashi - Level 5", displayName: "Kakashi", hwp: 5, image: "newimages/naruto/kakashi.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "kakashi")},
+  {id: "madara_unlocked", task: "Unlock Madara", displayName: "Madara", hwp: 10, image: "newimages/naruto/madara.png", unlocked: false, claimed: false, condition: () => isUnlocked("madara")}],
   /*One Piece*/
-  "One Piece": [{id: "luffy_level5", task: "Luffy - Level 5", displayName: "PTS Luffy", hwp: 5, image: "images/ptsluffy.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "luffy")},
-  {id: "nami_level5", task: "Nami - Level 5", displayName: "PTS Nami", hwp: 5, image: "images/ptsnami.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "nami")},
-  {id: "sanji_level5", task: "Sanji - Level 5", displayName: "PTS Sanji", hwp: 5, image: "images/ptssanji.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "sanji")},
-  {id: "chopper_level5", task: "Chopper - Level 5", displayName: "Chopper", hwp: 5, image: "images/chopper.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "chopper")},
-  {id: "zoro_level5", task: "Zoro - Level 5", displayName: "PTS Zoro", hwp: 5, image: "images/ptszoro.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "zoro")},
-  {id: "shanks_level5", task: "Unlock Shanks", displayName: "PTS Shanks", hwp: 10, image: "images/ptsshanks.png", unlocked: false, claimed: false, condition: () => isUnlocked("shanks")}],
+  "One Piece": [
+  {id: "luffy_level5", task: "Luffy - Level 5", displayName: "PTS Luffy", hwp: 5, image: "newimages/onepiece/ptsluffy.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "luffy")},
+  {id: "nami_level5", task: "Nami - Level 5", displayName: "PTS Nami", hwp: 5, image: "newimages/onepiece/ptsnami.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "nami")},
+  {id: "sanji_level5", task: "Sanji - Level 5", displayName: "PTS Sanji", hwp: 5, image: "newimages/onepiece/ptssanji.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "sanji")},
+  {id: "chopper_level5", task: "Chopper - Level 5", displayName: "Chopper", hwp: 5, image: "newimages/onepiece/chopper.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "chopper")},
+  {id: "zoro_level5", task: "Zoro - Level 5", displayName: "PTS Zoro", hwp: 5, image: "newimages/onepiece/ptszoro.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "zoro")},
+  {id: "shanks_level5", task: "Unlock Shanks", displayName: "PTS Shanks", hwp: 10, image: "newimages/onepiece/ptsshanks.png", unlocked: false, claimed: false, condition: () => isUnlocked("shanks")}],
   /*One Punch Man*/
-  "One Punch Man": [{id: "smileman_level5", task: "Smileman - Level 5", displayName: "Smileman", hwp: 5, image: "images/smileman.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "smileman")},
-    {id: "tanktop_level5", task: "Tank Top Tiger - Level 5", displayName: "Tank Top Tiger", hwp: 5, image: "images/tanktop.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "tanktop")},
-    {id: "mumenrider_level5", task: "Mumen Rider - Level 5", displayName: "Mumen Rider", hwp: 5, image: "images/mumenrider.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "mumenider")},
-    {id: "fubuki_level5", task: "Fubuki - Level 5", displayName: "Fubuki", hwp: 5, image: "images/fubuki.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "fubuki")},
-    {id: "genos_level5", task: "Genos - Level 5", displayName: "Genos", hwp: 5, image: "images/genos.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "genos")},
-    {id: "garou_unlocked", task: "Unlock Garou", displayName: "Garou", hwp: 10, image: "images/garou.png", unlocked: false, claimed: false, condition: ()=> isUnlocked("garou")},
-    {id: "saitama_unlocked", task: "Unlock Saitama", displayName: "Saitama", hwp: 10, image: "images/saitama.png", unlocked: false, claimed: false, condition: ()=> isUnlocked("saitama")}],
+  "One Punch Man": [
+  {id: "smileman_level5", task: "Smileman - Level 5", displayName: "Smileman", hwp: 5, image: "newimages/opm/smileman.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "smileman")},
+  {id: "tanktop_level5", task: "Tank Top Tiger - Level 5", displayName: "Tank Top Tiger", hwp: 5, image: "newimages/opm/tanktop.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "tanktop")},
+  {id: "mumenrider_level5", task: "Mumen Rider - Level 5", displayName: "Mumen Rider", hwp: 5, image: "newimages/opm/mumenrider.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "mumenider")},
+  {id: "fubuki_level5", task: "Fubuki - Level 5", displayName: "Fubuki", hwp: 5, image: "newimages/opm/fubuki.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "fubuki")},
+  {id: "genos_level5", task: "Genos - Level 5", displayName: "Genos", hwp: 5, image: "newimages/opm/genos.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "genos")},
+  {id: "garou_unlocked", task: "Unlock Garou", displayName: "Garou", hwp: 10, image: "newimages/opm/garou.png", unlocked: false, claimed: false, condition: ()=> isUnlocked("garou")},
+  {id: "saitama_unlocked", task: "Unlock Saitama", displayName: "Saitama", hwp: 10, image: "newimages/opm/saitama.png", unlocked: false, claimed: false, condition: ()=> isUnlocked("saitama")}],
   /*Dandadan*/
-  "Dandadan": [{id: "okarun_level5", task: "Okarun - Level 5", displayName: "Okarun", hwp: 5, image: "images/okarun.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "okarun")},
-  {id: "aira_level5", task: "Aira - Level 5", displayName: "Aira", hwp: 5, image: "images/aira.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "aira")},
-  {id: "jiji_level5", task: "Jiji - Level 5", displayName: "Jiji", hwp: 5, image: "images/jiji.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "jiji")},
-  {id: "momo_level5", task: "Momo - Level 5", displayName: "Momo", hwp: 5, image: "images/momo.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "momo")},
-  {id: "seiko_level5", task: "Seiko - Level 5", displayName: "Seiko", hwp: 5, image: "images/seiko.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "seiko")},
-  {id: "turbogranny_unlocked", task: "Unlock Turbo Granny", displayName: "Turbo Granny", hwp: 10, image: "images/turbogranny.png", unlocked: false, claimed: false, condition: ()=> isUnlocked("turbogranny")}],
+  "Dandadan": [
+  {id: "okarun_level5", task: "Okarun - Level 5", displayName: "Okarun", hwp: 5, image: "newimages/dandadan/okarun.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "okarun")},
+  {id: "aira_level5", task: "Aira - Level 5", displayName: "Aira", hwp: 5, image: "newimages/dandadan/aira.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "aira")},
+  {id: "jiji_level5", task: "Jiji - Level 5", displayName: "Jiji", hwp: 5, image: "newimages/dandadan/jiji.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "jiji")},
+  {id: "momo_level5", task: "Momo - Level 5", displayName: "Momo", hwp: 5, image: "newimages/dandadan/momo.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "momo")},
+  {id: "seiko_level5", task: "Seiko - Level 5", displayName: "Seiko", hwp: 5, image: "newimages/dandadan/seiko.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "seiko")},
+  {id: "turbogranny_unlocked", task: "Unlock Turbo Granny", displayName: "Turbo Granny", hwp: 15, image: "newimages/dandadan/turbogranny.png", unlocked: false, claimed: false, condition: ()=> isUnlocked("turbogranny")}],
   /*Jujutsu Kaisen*/
-  "Jujutsu Kaisen": [{id: "momojjk_level5", task: "Momo - Level 5", displayName: "Momo", hwp: 5, image: "images/momojjk.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "momojjk")},
-  {id: "maijjk_level5", task: "Mai - Level 5", displayName: "Mai Zenin", hwp: 5, image: "images/maizenin.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "maijjk")},
-  {id: "makizenin_level5", task: "Maki - Level 5", displayName: "Maki Zenin", hwp: 5, image: "images/makizenin.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "maki")},
-  {id: "pandajjk_level5", task: "Panda - Level 5", displayName: "Panda", hwp: 5, image: "images/panda.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "pandajjk")},
-  {id: "inumaki_level5", task: "Inumaki - Level 5", displayName: "Inumaki", hwp: 5, image: "images/inumaki.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "inumaki")},
-  {id: "itadori_level5", task: "Yuji - Level 5", displayName: "Yuji", hwp: 5, image: "images/yuji.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "itadori")},
-  {id: "megumi_level5", task: "Megumi - Level 5", displayName: "Megumi", hwp: 5, image: "images/megumi.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "megumi")},
-  {id: "nobara_level5", task: "Nobara - Level 5", displayName: "Nobara", hwp: 5, image: "images/nobara.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "nobara")},
-  {id: "nanami_level5", task: "Nanami - Level 5", displayName: "Nanami", hwp: 5, image: "images/nanami.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "nanami")},
-  {id: "sukuna_unlocked", task: "Unlock Sukuna", displayName: "Sukuna", hwp: 10, image: "images/sukuna.png", unlocked: false, claimed: false, condition: ()=> isUnlocked("sukuna")},
-  {id: "gojo_unlocked", task: "Unlock Gojo", displayName: "Gojo", hwp: 10, image: "images/gojo.png", unlocked: false, claimed: false, condition: ()=> isUnlocked("gojo")}],
+  "Jujutsu Kaisen": [
+  {id: "momojjk_level5", task: "Momo - Level 5", displayName: "Momo", hwp: 5, image: "newimages/jjk/momojjk.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "momojjk")},
+  {id: "maijjk_level5", task: "Mai - Level 5", displayName: "Mai Zenin", hwp: 5, image: "newimages/jjk/maizenin.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "maijjk")},
+  {id: "makizenin_level5", task: "Maki - Level 5", displayName: "Maki Zenin", hwp: 5, image: "newimages/jjk/makizenin.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "maki")},
+  {id: "pandajjk_level5", task: "Panda - Level 5", displayName: "Panda", hwp: 5, image: "newimages/jjk/panda.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "pandajjk")},
+  {id: "inumaki_level5", task: "Inumaki - Level 5", displayName: "Inumaki", hwp: 5, image: "newimages/jjk/inumaki.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "inumaki")},
+  {id: "itadori_level5", task: "Yuji - Level 5", displayName: "Yuji", hwp: 5, image: "newimages/jjk/yuji.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "itadori")},
+  {id: "megumi_level5", task: "Megumi - Level 5", displayName: "Megumi", hwp: 5, image: "newimages/jjk/megumi.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "megumi")},
+  {id: "nobara_level5", task: "Nobara - Level 5", displayName: "Nobara", hwp: 5, image: "newimages/jjk/nobara.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "nobara")},
+  {id: "nanami_level5", task: "Nanami - Level 5", displayName: "Nanami", hwp: 5, image: "newimages/jjk/nanami.png", unlocked: false, claimed: false, condition: ()=> isLevelAtLeast(5, "nanami")},
+  {id: "sukuna_unlocked", task: "Unlock Sukuna", displayName: "Sukuna", hwp: 15, image: "newimages/jjk/sukuna.png", unlocked: false, claimed: false, condition: ()=> isUnlocked("sukuna")},
+  {id: "gojo_unlocked", task: "Unlock Gojo", displayName: "Gojo", hwp: 15, image: "newimages/jjk/gojo.png", unlocked: false, claimed: false, condition: ()=> isUnlocked("gojo")}],
+  /*Frieren*/
+  "Frieren": [
+  {id: "kraft_level5", task: "Kraft - Level 5", displayName: "Kraft", hwp: 5, image: "newimages/frieren/kraft.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "kraft")},
+  {id: "laufen_level5", task: "Laufen - Level 5", displayName: "Laufen", hwp: 5, image: "newimages/frieren/laufen.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "laufen")},
+  {id: "wirbel_level5", task: "Wirbel - Level 5", displayName: "Wirbel", hwp: 5, image: "newimages/frieren/wirbel.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "wirbel")},
+  {id: "lugner_level5", task: "Lugner - Level 5", displayName: "Lugner", hwp: 5, image: "newimages/frieren/lugner.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "lugner")},
+  {id: "denken_level5", task: "Denken - Level 5", displayName: "Denken", hwp: 5, image: "newimages/frieren/denken.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "denken")},
+  {id: "heiter_level5", task: "Heiter - Level 5", displayName: "Heiter", hwp: 5, image: "newimages/frieren/heiter.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "heiter")},
+  {id: "eisen_level5", task: "Eisen - Level 5", displayName: "Eisen", hwp: 5, image: "newimages/frieren/eisen.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "eisen")},
+  {id: "stark_level5", task: "Stark - Level 5", displayName: "Stark", hwp: 5, image: "newimages/frieren/stark.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "stark")},
+  {id: "ubel_level5", task: "Ubel - Level 5", displayName: "Ubel", hwp: 5, image: "newimages/frieren/ubel.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "ubel")},
+  {id: "land_level5", task: "Land - Level 5", displayName: "Land", hwp: 5, image: "newimages/frieren/land.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "land")},
+  {id: "himmel_level5", task: "Himmel - Level 5", displayName: "Himmel", hwp: 5, image: "newimages/frieren/himmel.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "himmel")},
+  {id: "fern_level5", task: "Fern - Level 5", displayName: "Fern", hwp: 5, image: "newimages/frieren/fern.png", unlocked: false, claimed: false, condition: () => isLevelAtLeast(5, "fern")},
+  {id: "frieren_unlocked", task: "Unlock Frieren", displayName: "Frieren", hwp: 15, image: "newimages/frieren/frierencc.png", unlocked: false, claimed: false, condition: () => isUnlocked("frierencc")}],
 };
 
 let selectedAchievementSeries = null;

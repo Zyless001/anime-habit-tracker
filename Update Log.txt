@@ -1,12 +1,12 @@
-Update 3.0 (Jujutsu Kaisen + PFP's)
+Update 3.5 (Frieren)
 
-+11 New Characters
++21 New Characters
 
-+31 Achievements
++13 Achievements
 
 CHARACTER INFO
 
-"Jujutsu Kaisen" (2 Commons, 3 Uncommons, 4 Rares, and 2 Legendarys)
+"Frieren" (8 Commons, 6 Uncommons, 6 Rares, and 1 Legendary)
 
 
 QOL
@@ -18,62 +18,26 @@ ACHIEVEMENTS
 
 ... Way to many
 
-Dandadan
+Frieren
 
-"Aira - Level 5"
+"Kraft - Level 5"
 
-"Jiji - Level 5"
-
-and more...
-
-Jujutsu Kaisen
-
-"Maki - Level 5"
-
-"Yuji - Level 5"
-
-and more...
-
-Naruto
-
-"Sakura - Level 5"
-
-"Sasuke - Level 5"
-
-and more...
-
-One Piece
-
-"Nami - Level 5"
-
-"Sanji - Level 5"
-
-and more...
-
-One Punch Man
-
-"Fubuki - Level 5"
-
-"Genos - Level 5"
+"Stark - Level 5"
 
 and more...
 
 
 PFP's
 
-Just about everyone got one...
+A lot of "Frieren" Characters got one
 
 
 BUG FIX
 
-Fixed - Order of rewards (now lowest to highest in price)
-
 
 EXTRA INFO
 
-HUGE UPDATE... It may not look like much on the surface but doing task's will feel a lot more
-rewarding now. We get PFP's, Achievements, etc. Which makes going for characters 
-(atleast for me) worth it. I hope yall like this update if you try it. Also, let me know if you find any bugs
-or what anime to add in the future
+Most updates from now on won't be HUGE. I got most of what I want in this app/site so I will only add more wheels
+and QOL. I hope you enjoy the Frieren characters though, lol.
 
 Work hard and God bless
